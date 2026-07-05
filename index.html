@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RJ Mobile — Branch Locations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #3B82F6;
+      --blue-hover: #60A5FA;
+      --blue-light: #1a2744;
+      --blue-mid: #1e3060;
+      --surface: #0D1117;
+      --white: #161C27;
+      --border: #2A3347;
+      --muted: #6B7A99;
+      --text: #E8EDF5;
+      --text-soft: #9BAAC4;
+      --green: #10B981;
+    }
+    
+    html { -webkit-font-smoothing: antialiased; }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--surface);
+      background-image: radial-gradient(ellipse 90% 40% at 50% -5%, rgba(59,130,246,0.12) 0%, transparent 70%);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 52px 16px 64px;
+    }
+
+    .header { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 36px; text-align: center; }
+    
+    .brand  { display: flex; align-items: center; gap: 11px; margin-bottom: 8px; }
+    .logo {
+      width: 46px; height: 46px; background: transparent; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 16px rgba(59,130,246,0.4); overflow: hidden; flex-shrink: 0;
+    }
+    .logo img  { width: 100%; height: 100%; object-fit: contain; }
+    .brand-text { text-align: left; }
+    .brand-text .name { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.6px; line-height: 1; }
+    .brand-text .tag  { font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+    
+    .headline { font-size: clamp(26px, 5vw, 32px); font-weight: 800; color: var(--text); letter-spacing: -0.8px; line-height: 1.15; }
+    .headline em { font-style: normal; color: var(--blue); }
+    .subline { font-size: 14.5px; color: var(--text-soft); line-height: 1.65; max-width: 380px; }
+    
+    .card {
+      background: var(--white); border-radius: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
+      width: 100%; max-width: 520px; overflow: hidden;
+      padding: 28px;
+    }
+    
+    .locations-wrap {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    
+    .location-action-btn {
+      font-family: 'Inter', sans-serif;
+      background: var(--blue-light); border: 1.5px solid rgba(59,130,246,0.15);
+      border-radius: 16px; padding: 18px 20px; width: 100%; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .location-action-btn:hover { background: var(--blue-mid); border-color: rgba(59,130,246,0.4); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+    .location-action-btn:active { transform: scale(0.98); }
+    .location-action-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .location-info { display: flex; align-items: center; gap: 16px; }
+    .location-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: rgba(59,130,246,0.12); display: flex; align-items: center; justify-content: center; color: var(--blue);
+      flex-shrink: 0; transition: background 0.2s, color 0.2s;
+    }
+    
+    .location-action-btn:hover .location-icon { background: rgba(234, 67, 53, 0.15); color: #EA4335; }
+
+    /* Special styles for "Nearest" feature */
+    .find-nearest-btn { border-color: var(--blue); background: var(--blue-mid); margin-bottom: 8px; }
+    .find-nearest-btn .location-icon { background: var(--blue); color: #fff; }
+    .find-nearest-btn:hover .location-icon { background: var(--blue-hover); color: #fff; }
+    
+    .distance-badge { font-size: 11.5px; font-weight: 600; margin-left: 6px; padding: 2px 6px; background: rgba(107, 122, 153, 0.15); color: var(--muted); border-radius: 6px; vertical-align: middle; }
+    .distance-badge.nearest-badge { color: var(--green); background: rgba(16, 185, 129, 0.1); font-weight: 700; }
+    .is-nearest { border: 1.5px solid var(--green) !important; background: rgba(16, 185, 129, 0.05) !important; }
+
+    .btn-text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+    .btn-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .btn-subtitle { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: 0.1px; transition: color 0.2s; text-align: left; }
+    .location-action-btn:hover .btn-subtitle { color: var(--text-soft); }
+
+    .action-icon { color: var(--muted); transition: color 0.15s; }
+    .location-action-btn:hover .action-icon { color: var(--blue-hover); }
+    
+    #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px); background: #3B82F6; color: #fff; font-size: 13.5px; font-weight: 500; padding: 12px 24px; border-radius: 100px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; white-space: nowrap; z-index: 999; box-shadow: 0 4px 20px rgba(59,130,246,0.4); }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    
+    .footer { margin-top: 32px; font-size: 13px; color: var(--muted); text-align: center; line-height: 1.7; font-weight: 500; }
+
+    @media (max-width: 480px) {
+      body { padding: 32px 16px 52px; }
+      .card { padding: 22px; }
+      .location-action-btn { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="brand">
+      <div class="logo"><img src="logo.png" alt="RJ Mobile" onerror="this.style.display='none'" /></div>
+      <div class="brand-text">
+        <div class="name">RJ Mobile</div>
+        <div class="tag">Store Locations</div>
+      </div>
+    </div>
+    <h1 class="headline">Find Our <em>Branches</em></h1>
+    <p class="subline">Tap a branch below to view its location instantly on Google Maps.</p>
+  </header>
+
+  <div class="card">
+    <div class="locations-wrap" id="locationsContainer">
+
+      <!-- Find Nearest Button -->
+      <button class="location-action-btn find-nearest-btn" onclick="findNearestBranch(this)">
+        <div class="location-info">
+          <div class="location-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="btn-text-group">
+            <span class="btn-title">Find Nearest Branch</span>
+            <span class="btn-subtitle">Calculate distance to all our stores</span>
+          </div>
+        </div>
+      </button>
+      
+      <!-- Murlipura Branch -->
+      <button class="location-action-btn branch-btn" data-lat="26.9654" data-lng="75.7610" onclick="openLocation(this, 'Murlipura Branch', 'https://maps.app.goo.gl/fbznL2wGQ7F3tvUp9')">
+        <div class="location-info">
+          <div class="location-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="btn-text-group">
+            <span class="btn-title">Murlipura, 1 Number</span>
+            <span class="btn-subtitle">Shop no 12, Kedia Palace Rd, Shiv Nagar-1, Murlipura, Jaipur</span>
+          </div>
+        </div>
+        <svg class="action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </button>
+
+      <!-- 17 no. Branch -->
+      <button class="location-action-btn branch-btn" data-lat="26.9890" data-lng="75.7720" onclick="openLocation(this, '17 no. Branch', 'https://maps.app.goo.gl/VCL5GzwvVGYJqTvq5')">
+        <div class="location-info">
+          <div class="location-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="btn-text-group">
+            <span class="btn-title">VKI, 17 Number</span>
+            <span class="btn-subtitle">Shop No. 182, Road No. 17, Shree Ram Nagar - B, J.S.Colony, VKI Area, Jaipur</span>
+          </div>
+        </div>
+        <svg class="action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </button>
+
+      <!-- Shashtri Nagar Branch -->
+      <button class="location-action-btn branch-btn" data-lat="26.9530" data-lng="75.7925" onclick="openLocation(this, 'Shashtri Nagar Branch', 'https://maps.app.goo.gl/MhjdV4T5RtG7V2cPA')">
+        <div class="location-info">
+          <div class="location-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="btn-text-group">
+            <span class="btn-title">Shastri Nagar</span>
+            <span class="btn-subtitle">Front of BOB bank, A59, near Kanwatia Circle, Shastri Nagar, Jaipur</span>
+          </div>
+        </div>
+        <svg class="action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </button>
+
+      <!-- Lohamandi Branch -->
+      <button class="location-action-btn branch-btn" data-lat="27.0123" data-lng="75.7510" onclick="openLocation(this, 'Lohamandi Branch', 'https://maps.app.goo.gl/qdBwqJGh7jVdHELk9')">
+        <div class="location-info">
+          <div class="location-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="btn-text-group">
+            <span class="btn-title">VKI, Lohamandi</span>
+            <span class="btn-subtitle">Shop No. A-6, Krishna Market, New Loha Mandi Rd, Harmada, Jaipur</span>
+          </div>
+        </div>
+        <svg class="action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </button>
+
+      <!-- 6 no. Branch -->
+      <button class="location-action-btn branch-btn" data-lat="26.9745" data-lng="75.7675" onclick="openLocation(this, '6 no. Branch', 'https://maps.app.goo.gl/1hKXksoent3QnRTz9')">
+        <div class="location-info">
+          <div class="location-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="btn-text-group">
+            <span class="btn-title">Murlipura, 6 Number</span>
+            <span class="btn-subtitle">29-A, Rd Number 6, opp. Cks Hospital, VKI Area, Murlipura, Jaipur</span>
+          </div>
+        </div>
+        <svg class="action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </button>
+
+    </div>
+  </div>
+
+  <p class="footer">Stay Connected With RJ Mobile · 📍</p>
+  <div id="toast" aria-live="polite"></div>
+
+  <script>
+    let toastTimer;
+    let distancesCalculated = false; 
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function openLocation(btn, locationName, url) {
+      const allBtns = document.querySelectorAll('.location-action-btn');
+      allBtns.forEach(b => b.disabled = true);
+
+      const titleEl = btn.querySelector('.btn-title');
+      
+      // Save whatever text is inside the title minus the badge HTML so we can safely restore it
+      const badge = titleEl.querySelector('.distance-badge');
+      const badgeHTML = badge ? badge.outerHTML : '';
+      
+      // Extract original text content cleanly
+      let originalText = titleEl.textContent;
+      if (badge) {
+        originalText = originalText.replace(badge.textContent, '').trim();
+      }
+      
+      titleEl.innerHTML = 'Opening...' + badgeHTML;
+      btn.style.borderColor = 'rgba(59,130,246,0.6)';
+      btn.style.background = 'var(--blue-mid)';
+      
+      showToast('Opening ' + locationName + ' in Maps...');
+      
+      setTimeout(() => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        setTimeout(() => {
+          titleEl.innerHTML = originalText + badgeHTML;
+          btn.style.borderColor = '';
+          btn.style.background = '';
+          allBtns.forEach(b => b.disabled = false);
+        }, 800);
+      }, 500);
+    }
+
+    // Mathematical fallback: Haversine straight-line distance (in meters)
+    function calculateStraightLine(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // Earth radius in meters
+      const phi1 = lat1 * Math.PI/180;
+      const phi2 = lat2 * Math.PI/180;
+      const deltaPhi = (lat2-lat1) * Math.PI/180;
+      const deltaLambda = (lon2-lon1) * Math.PI/180;
+      const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c; 
+    }
+
+    function renderAndSortBranches(branches, distanceArray, isDrivingRoute) {
+      const labelType = isDrivingRoute ? 'drive' : 'away';
+
+      branches.forEach((branch, index) => {
+        const distanceInMeters = distanceArray[index]; 
+        branch.setAttribute('data-distance', distanceInMeters); 
+        
+        const titleEl = branch.querySelector('.btn-title');
+        const km = (distanceInMeters / 1000).toFixed(1);
+        titleEl.innerHTML += ` <span class="distance-badge">${km} km ${labelType}</span>`;
+      });
+
+      // Sort branches low to high
+      branches.sort((a, b) => parseFloat(a.getAttribute('data-distance')) - parseFloat(b.getAttribute('data-distance')));
+
+      // Rearrange in the HTML view container
+      const container = document.getElementById('locationsContainer');
+      branches.forEach(branch => container.appendChild(branch));
+
+      // Style the closest element
+      if (branches.length > 0) {
+        const closestBranch = branches[0];
+        closestBranch.classList.add('is-nearest');
+        const nearestBadge = closestBranch.querySelector('.distance-badge');
+        nearestBadge.classList.add('nearest-badge');
+        nearestBadge.innerHTML = `Nearest: ${nearestBadge.innerHTML}`;
+      }
+
+      distancesCalculated = true;
+    }
+
+    function findNearestBranch(btn) {
+      if (distancesCalculated) {
+        showToast("Distances are already calculated and sorted.");
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        showToast("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      btn.querySelector('.btn-title').textContent = "Calculating...";
+      
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const userLat = position.coords.latitude;
+          const userLng = position.coords.longitude;
+          const branches = Array.from(document.querySelectorAll('.branch-btn'));
+          
+          let coordString = `${userLng},${userLat}`;
+          branches.forEach(branch => {
+            coordString += `;${branch.getAttribute('data-lng')},${branch.getAttribute('data-lat')}`;
+          });
+
+          try {
+            // Attempt Driving Route OSRM request
+            const response = await fetch(`https://router.project-osrm.org/table/v1/driving/${coordString}?sources=0&annotations=distance`);
+            const data = await response.json();
+
+            if (data.code !== 'Ok') throw new Error('OSRM API Error');
+
+            // Map standard array offset (skip index 0 which corresponds to user coordinate tracking itself)
+            const drivingDistances = data.distances[0].slice(1);
+            renderAndSortBranches(branches, drivingDistances, true);
+            showToast("Nearest driving routes found!");
+
+          } catch (error) {
+            console.warn("OSRM routing failed, falling back to straight-line math.", error);
+            
+            // Fallback: Instant straight line calculation locally
+            const straightLineDistances = branches.map(branch => {
+              return calculateStraightLine(
+                userLat, userLng, 
+                parseFloat(branch.getAttribute('data-lat')), 
+                parseFloat(branch.getAttribute('data-lng'))
+              );
+            });
+
+            renderAndSortBranches(branches, straightLineDistances, false);
+            showToast("Showing straight line distance calculations.");
+          }
+
+          btn.querySelector('.btn-title').textContent = "Distances Calculated";
+          btn.style.opacity = "0.7"; 
+          btn.style.cursor = "default";
+        },
+        (error) => {
+          console.error(error);
+          showToast("Location access denied or unavailable.");
+          btn.querySelector('.btn-title').textContent = "Find Nearest Branch";
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    }
+  </script>
+</body>
+</html>
